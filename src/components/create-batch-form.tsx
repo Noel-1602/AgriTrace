@@ -16,9 +16,12 @@ const initial: ActionResult = {};
 
 export function CreateBatchForm({ farms }: { farms: Farm[] }) {
   const [state, formAction, pending] = useActionState(createBatchAction, initial);
-  const [farmId, setFarmId] = useState<string>(() => farms[0]?.id ?? "");
+  const defaultFarmId = farms[0]?.id ?? "";
+  const [farmId, setFarmId] = useState<string>(defaultFarmId);
   const [cropName, setCropName] = useState<string>("Tomato");
   const [unit, setUnit] = useState<string>("kg");
+
+  const selectedFarmId = farmId || defaultFarmId;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -27,11 +30,16 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
         <select
           id="farm_id"
           name="farm_id"
-          value={farmId}
+          value={selectedFarmId}
           onChange={(e) => setFarmId(e.target.value)}
           required
           className="flex h-9 w-full rounded-lg border border-[#c5d9c8] bg-white px-3 py-1.5 text-sm text-[#1a3d2e] shadow-sm transition focus:border-[#2d6a4f] focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]/20"
         >
+          {farms.length === 0 && (
+            <option value="" disabled>
+              No farms available
+            </option>
+          )}
           {farms.map((farm) => (
             <option key={farm.id} value={farm.id}>
               {farm.farm_name}
@@ -171,7 +179,7 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
       <Button
         type="submit"
         className="w-full bg-[#2d6a4f] hover:bg-[#24543f] text-white sm:w-auto"
-        disabled={pending || !farmId || !cropName}
+        disabled={pending || !selectedFarmId || !cropName}
       >
         {pending ? (
           <>

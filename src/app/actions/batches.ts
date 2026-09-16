@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { generateBatchCode } from "@/lib/batch-code";
 import { createClient } from "@/lib/supabase/server";
+import { getFarmerFarms } from "@/lib/queries/batches";
 import { createBatchSchema, updateBatchSchema } from "@/lib/validation";
 
 export type ActionResult = { error?: string; fieldErrors?: Record<string, string[]>; success?: boolean };
@@ -12,17 +13,25 @@ export async function createBatchAction(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
+  let farmId = String(formData.get("farm_id") ?? "").trim();
+  if (!farmId) {
+    const { farms } = await getFarmerFarms();
+    if (farms.length > 0) {
+      farmId = farms[0].id;
+    }
+  }
+
   const raw = {
-    farm_id: String(formData.get("farm_id") ?? ""),
-    crop_name: String(formData.get("crop_name") ?? ""),
-    variety: String(formData.get("variety") ?? "") || undefined,
-    sowing_date: String(formData.get("sowing_date") ?? ""),
+    farm_id: farmId,
+    crop_name: String(formData.get("crop_name") ?? "").trim(),
+    variety: String(formData.get("variety") ?? "").trim() || undefined,
+    sowing_date: String(formData.get("sowing_date") ?? "").trim(),
     expected_harvest_date:
-      String(formData.get("expected_harvest_date") ?? "") || undefined,
+      String(formData.get("expected_harvest_date") ?? "").trim() || undefined,
     harvest_date:
-      String(formData.get("harvest_date") ?? "") || undefined,
+      String(formData.get("harvest_date") ?? "").trim() || undefined,
     quantity: formData.get("quantity"),
-    unit: String(formData.get("unit") ?? "kg"),
+    unit: String(formData.get("unit") ?? "kg").trim(),
   };
 
   const parsed = createBatchSchema.safeParse(raw);

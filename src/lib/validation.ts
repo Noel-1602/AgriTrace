@@ -10,7 +10,7 @@ export const batchCodeSchema = z
 
 export const createBatchSchema = z
   .object({
-    farm_id: z.string().uuid("Select a farm"),
+    farm_id: z.string().trim().min(1, "Select a farm"),
     crop_name: z.string().min(1, "Crop is required"),
     variety: z.string().optional(),
     sowing_date: z.string().min(1, "Sowing date is required"),
@@ -40,7 +40,7 @@ export type CreateBatchInput = z.infer<typeof createBatchSchema>;
 
 export const updateBatchSchema = z
   .object({
-    id: z.string().uuid(),
+    id: z.string().trim().min(1, "Batch ID is required"),
     crop_name: z.string().min(1, "Crop is required"),
     variety: z.string().nullable().optional(),
     sowing_date: z.string().min(1, "Sowing date is required"),
@@ -70,7 +70,7 @@ export const updateBatchSchema = z
 export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;
 
 export const createActivitySchema = z.object({
-  batch_id: z.string().uuid(),
+  batch_id: z.string().trim().min(1, "Batch ID is required"),
   activity_type: z.enum(ACTIVITY_TYPES, {
     message: "Activity type is required",
   }),
@@ -84,8 +84,8 @@ export const createActivitySchema = z.object({
 export type CreateActivityInput = z.infer<typeof createActivitySchema>;
 
 export const updateActivitySchema = z.object({
-  id: z.string().uuid(),
-  batch_id: z.string().uuid(),
+  id: z.string().trim().min(1, "Activity ID is required"),
+  batch_id: z.string().trim().min(1, "Batch ID is required"),
   activity_type: z.enum(ACTIVITY_TYPES, {
     message: "Activity type is required",
   }),
