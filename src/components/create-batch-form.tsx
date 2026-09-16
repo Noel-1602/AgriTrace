@@ -11,43 +11,36 @@ import type { Farm } from "@/lib/database.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const initial: ActionResult = {};
 
 export function CreateBatchForm({ farms }: { farms: Farm[] }) {
   const [state, formAction, pending] = useActionState(createBatchAction, initial);
-  const [farmId, setFarmId] = useState("");
-  const [cropName, setCropName] = useState("");
+  const [farmId, setFarmId] = useState<string>(() => farms[0]?.id ?? "");
+  const [cropName, setCropName] = useState<string>("Tomato");
   const [unit, setUnit] = useState<string>("kg");
 
   return (
     <form action={formAction} className="space-y-5">
-      <input type="hidden" name="farm_id" value={farmId} />
-      <input type="hidden" name="crop_name" value={cropName} />
-      <input type="hidden" name="unit" value={unit} />
-
       <div className="space-y-2">
         <Label htmlFor="farm_id">Farm</Label>
-        <Select value={farmId} onValueChange={(v) => v && setFarmId(v)} required>
-          <SelectTrigger id="farm_id" className="w-full">
-            <SelectValue placeholder="Select farm" />
-          </SelectTrigger>
-          <SelectContent>
-            {farms.map((farm) => (
-              <SelectItem key={farm.id} value={farm.id}>
-                {farm.farm_name}
-                {farm.district ? ` · ${farm.district}` : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          id="farm_id"
+          name="farm_id"
+          value={farmId}
+          onChange={(e) => setFarmId(e.target.value)}
+          required
+          className="flex h-9 w-full rounded-lg border border-[#c5d9c8] bg-white px-3 py-1.5 text-sm text-[#1a3d2e] shadow-sm transition focus:border-[#2d6a4f] focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]/20"
+        >
+          {farms.map((farm) => (
+            <option key={farm.id} value={farm.id}>
+              {farm.farm_name}
+              {farm.village || farm.district
+                ? ` · ${[farm.village, farm.district].filter(Boolean).join(", ")}`
+                : ""}
+            </option>
+          ))}
+        </select>
         {state.fieldErrors?.farm_id && (
           <p className="text-sm text-destructive">{state.fieldErrors.farm_id[0]}</p>
         )}
@@ -56,32 +49,53 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="crop_name">Crop</Label>
-          <Select value={cropName} onValueChange={(v) => v && setCropName(v)} required>
-            <SelectTrigger id="crop_name" className="w-full">
-              <SelectValue placeholder="Select crop" />
-            </SelectTrigger>
-            <SelectContent>
-              {CROP_MASTER.map((c) => (
-                <SelectItem key={c.name} value={c.name}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            id="crop_name"
+            name="crop_name"
+            value={cropName}
+            onChange={(e) => {
+              const selectedCrop = e.target.value;
+              setCropName(selectedCrop);
+              const cropInfo = CROP_MASTER.find((c) => c.name === selectedCrop);
+              if (cropInfo) {
+                setUnit(cropInfo.unit);
+              }
+            }}
+            required
+            className="flex h-9 w-full rounded-lg border border-[#c5d9c8] bg-white px-3 py-1.5 text-sm text-[#1a3d2e] shadow-sm transition focus:border-[#2d6a4f] focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]/20"
+          >
+            {CROP_MASTER.map((c) => (
+              <option key={c.name} value={c.name}>
+                {c.name} ({c.category})
+              </option>
+            ))}
+          </select>
           {state.fieldErrors?.crop_name && (
             <p className="text-sm text-destructive">{state.fieldErrors.crop_name[0]}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="variety">Variety</Label>
-          <Input id="variety" name="variety" placeholder="e.g. Anagha" />
+          <Input
+            id="variety"
+            name="variety"
+            placeholder="e.g. Anagha"
+            className="border-[#c5d9c8]"
+          />
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="sowing_date">Sowing date</Label>
-          <Input id="sowing_date" name="sowing_date" type="date" required />
+          <Input
+            id="sowing_date"
+            name="sowing_date"
+            type="date"
+            required
+            defaultValue={new Date().toISOString().slice(0, 10)}
+            className="border-[#c5d9c8]"
+          />
           {state.fieldErrors?.sowing_date && (
             <p className="text-sm text-destructive">{state.fieldErrors.sowing_date[0]}</p>
           )}
@@ -92,6 +106,7 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
             id="expected_harvest_date"
             name="expected_harvest_date"
             type="date"
+            className="border-[#c5d9c8]"
           />
           {state.fieldErrors?.expected_harvest_date && (
             <p className="text-sm text-destructive">
@@ -105,6 +120,7 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
             id="harvest_date"
             name="harvest_date"
             type="date"
+            className="border-[#c5d9c8]"
           />
           {state.fieldErrors?.harvest_date && (
             <p className="text-sm text-destructive">
@@ -125,6 +141,8 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
             step="any"
             required
             placeholder="100"
+            defaultValue="100"
+            className="border-[#c5d9c8]"
           />
           {state.fieldErrors?.quantity && (
             <p className="text-sm text-destructive">{state.fieldErrors.quantity[0]}</p>
@@ -132,18 +150,19 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="unit">Unit</Label>
-          <Select value={unit} onValueChange={(v) => v && setUnit(v)}>
-            <SelectTrigger id="unit" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BATCH_UNITS.map((u) => (
-                <SelectItem key={u} value={u}>
-                  {u}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            id="unit"
+            name="unit"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            className="flex h-9 w-full rounded-lg border border-[#c5d9c8] bg-white px-3 py-1.5 text-sm text-[#1a3d2e] shadow-sm transition focus:border-[#2d6a4f] focus:outline-none focus:ring-2 focus:ring-[#2d6a4f]/20"
+          >
+            {BATCH_UNITS.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -151,12 +170,12 @@ export function CreateBatchForm({ farms }: { farms: Farm[] }) {
 
       <Button
         type="submit"
-        className="w-full bg-[#2d6a4f] hover:bg-[#24543f] sm:w-auto"
-        disabled={pending || farms.length === 0 || !farmId || !cropName}
+        className="w-full bg-[#2d6a4f] hover:bg-[#24543f] text-white sm:w-auto"
+        disabled={pending || !farmId || !cropName}
       >
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin mr-2" />
             Creating batch…
           </>
         ) : (
